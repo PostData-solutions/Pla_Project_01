@@ -4,7 +4,7 @@ subtitle: "V1 of IQ Report w/`999` Outlier"
 author: "Lorenzo Pla Serrano"
 date: "`r Sys.Date()`"
 
-abstract: "In this report, we briefly .."
+abstract: "In this report, the relationship between residential proximity to a lead-emitting smelter and IQ scores in children was briefly explored using a subset of data from a 1975 CDC study. Descriptive statistics and visualizations revealed a potentially erroneous IQ value of 999 in the `FAR` group, which inflated the mean and standard deviation for that group. Before drawing any final conclusions about the effect of smelter proximity on neurological function, this outlying observation must be addressed."
 
 output:
   pdf_document:
@@ -13,7 +13,7 @@ output:
     number_sections: false
     fig_caption: true
 
-geometry: margin=0.5in
+geometry: margin=0.75in
 fontsize: 11pt
 urlcolor: blue
 documentclass: article
@@ -39,17 +39,17 @@ opts_chunk$set(tidy = F)
 # NOTE: All r chunks are displayed in the Appendix section at the end
 
 # NOTE: Before creating this RMarkdown file, the folder structure for this project
-# was established using the `CIDAtools` package. See "/Code/creating_project_wCIDAtools.R",
+# was established using the `CIDAtools` package. 
+# See "/Code/creating_project_wCIDAtools.R",
 # which was run once to set up the directory structure.
 #
-# Additionally, because this RMarkdown file was written on Posit Cloud (browser-based RStudio),
+# Additionally, because this RMarkdown file was written on Posit Cloud 
+# (browser-based RStudio),
 # the instructions in "/Code/connecting_PositCloud_wGitHub.R" were followed to ensure
 # proper version control and reproducibility.
 
 # NOTE, one must commit before pushing, which sends committed changes to GitHub 
 ```
-
-\vspace{2mm}
 
 ```{r include=FALSE}
 # loading IQ data
@@ -63,14 +63,15 @@ IQ_data <- IQ_data %>%
 n <- nrow(IQ_data)
 ```
 
-
+\vspace{5mm}
 ## Background
 
 Lead is a highly toxic substance that affects nearly every organ system in the body when ingested directly. At lower, indirect exposure levels, the primary biological effect is damage to the nervous system, though the threshold for safe lead exposure remains a subject of scientific debate. To examine the relationship between low-level lead absorption and neurological function, researchers led by the CDC conducted a study of children aged 3 to 15 years in El Paso, Texas, who lived at varying distances from a large lead-emitting ore smelter (Landrigan et al., 1975). This brief exploratory analysis uses a subset of the original data, comprising `r n` observations without any filtering and consisting of just two variables: residential proximity to the smelter (categorized as NEAR if within 1 mile or FAR otherwise) and IQ scores measured using the Wechsler Intelligence Scale for Children (WISC). The data come from the study *Neuropsychological dysfunction in children with chronic low-level lead absorption*, published in The Lancet.
 
-# Comparing IQ Scores of Children Near or Far to Smelter
+\vspace{5mm}
+## Comparing IQ Scores of Children Near or Far to Smelter
 
-To compare the IQ levels of children who lived NEAR the smelter (within 1 mile) and were assumed to have greater lead exposure versus children who lived FAR and were presumably less exposed, a barplot and boxplot were created side by side in **Figure 1** to evaluate the distribution of IQ for each group. The barplot includes a bootstrapped percentile confidence interval to compare the variability between groups, whereas the boxplot displays outliers and indicates potential skewness. Common descriptive statistics were also included in **Table 1**. 
+To compare the IQ levels of children who lived NEAR the smelter (within 1 mile) and were assumed to have greater lead exposure versus children who lived FAR and were presumably less exposed, a barplot and boxplot were created side by side in **Figure 1** to evaluate the distribution of IQ for each group. The barplot includes a bootstrapped percentile confidence interval to compare the variability between groups, whereas the boxplot displays outliers and indicates potential skewness. Common descriptive statistics were also included in **Table 1** (shown first). 
 
 ```{r figure 1, echo=FALSE, fig.align='center'}
 library(ggplot2)
@@ -162,11 +163,13 @@ p_bar <- ggplot(bootstrap_ci, aes(x = Smelter, y = mean_IQ, fill = Smelter)) +
 
 
 # displaying plots side-by-side
-(p_bar + p_box + plot_layout(widths = c(5, 6))) +
+library(ggtext) # for correct bolding in title
+
+(p_bar + p_box + plot_layout(widths = c(5, 7))) +
   plot_annotation(
-    title = "Figure 1: Distribution of IQs by Smelter Proximity",
+    title = "Figure 1: **Distribution of IQs by Smelter Proximity**",
     theme = theme(
-      plot.title = element_text(
+      plot.title = element_markdown(
         hjust = 0.5,
         size = 12
       )
@@ -175,6 +178,7 @@ p_bar <- ggplot(bootstrap_ci, aes(x = Smelter, y = mean_IQ, fill = Smelter)) +
 
 # loading gtsummary
 library(gtsummary)
+
 # gtsummary table with full descriptive statistics
 IQ_data %>%
   tbl_summary(
@@ -186,7 +190,8 @@ IQ_data %>%
       "{min}, {max}"
     ),
     type = all_continuous() ~ "continuous2",
-    label = IQ ~ "IQ Score"
+    label = IQ ~ "IQ Score",
+    digits = all_continuous() ~ 1   # <-- ensures at least 1 decimal place
   ) %>%
   add_stat_label(
     label = all_continuous() ~ c(
@@ -198,21 +203,25 @@ IQ_data %>%
   add_n() %>%
   modify_header(label ~ "**Variable**") %>%
   modify_spanning_header(all_stat_cols() ~ "**Smelter Proximity**") %>%
-  modify_caption("**IQ Scores of Children by Their Smelter Proximity**")
+  modify_caption("**IQ Scores of Children by Their Smelter Proximity**") %>%
+  bold_labels()
 ```
 
-# Interpreation
+## Discussion & Conclusions
 
+```{r calculting means, include=FALSE}
+# calculating means by Smelter
+mean_far <- mean(IQ_data$IQ[IQ_data$Smelter == "Far"])
+mean_near <- mean(IQ_data$IQ[IQ_data$Smelter == "Near"])
+```
 
-# Calculated Means
-
-
-Without any type of filtering, the calculated mean IQ score for those children `NEAR` a smelter was `r `, whereas for children `FAR` from a smelter the mean IQ score was `r ` instead.
-
+The descriptive statistics in **Table 1** and visualizations in **Figure 1** show that the `FAR` group contains a potentially incorrect IQ value of 999, which can be a data entry error or missing value code rather than a real observation. Without any type of filtering, the calculated mean IQ score for children `FAR` from a smelter was `r round(mean_far, 1)`, whereas for children `NEAR` a smelter the mean IQ score was `r round(mean_near, 1)`. This single outlying value inflates the `FAR` group's mean and increases its standard deviation. In **Figure 1**, the barplot suggests that children who lived far from the smelter have a large confidence interval, which could indicate the presence of outliers or a wide distribution with much variance, whereas the `NEAR` group displays a very narrow confidence interval and could be normally distributed. In the boxplot the potential outlier compresses the y-axis and does not allow for a meaningful comparison between groups. Additionally, the mean in the `FAR` group is visibly pulled upward by the potential outlier, whereas the overlap of the mean and median in the `NEAR` group points to a potentially normal IQ distribution. Before drawing any final conclusions about the relationship between smelter proximity and IQ scores, this `999` observation must be considered.
 
 \newpage
 
 ## Code Appendix 
-<!-- The following code pulls all your code chunks from the paper and puts them here at the end (so you can keep "echo=F" in the code chunks above but they still appear here) -->
+<!-- The following code pulls all code chunks from the paper and puts them at the end (one can keep "echo=F" in the code chunks above but they still appear here) -->
 ```{r, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```
+\vspace{5mm}
+> GitHub Project Repository (public): https://github.com/PostData-solutions/Pla_Project_01
