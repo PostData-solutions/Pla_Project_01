@@ -1,4 +1,4 @@
-**Project Name**: RMarkdown & GitHub Practice Project
+**Project Name**: RMarkdown & GitHub Practice Project <br>
 **PI**: Dr. Camille Hochheimer    
 **Analyst**: Lorenzo Pla Serrano   
 **CIDA drive Location**: NA  
